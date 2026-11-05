@@ -39,6 +39,8 @@ Copy `skills/idea-generator/` into `~/.claude/skills/` (for you, across all proj
 
 Ask Claude to "set up the idea dashboard" on a run where the artifact tools are available. It publishes the page privately to your claude.ai account and records its address in the ledger.
 
+**Branding:** the page ships in neutral greys. At setup, Claude takes your colours, font and logo from your brand guidelines, design files or website, checks they're readable, and shows you the result before publishing. To change it later, ask Claude to "restyle the idea dashboard"; your decisions are kept.
+
 ## Repository layout
 
 ```
