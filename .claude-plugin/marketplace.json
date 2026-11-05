@@ -1,0 +1,14 @@
+{
+  "name": "linkedin-idea-generator",
+  "owner": {
+    "name": "Beth Hewitt"
+  },
+  "plugins": [
+    {
+      "name": "idea-generator",
+      "source": "./",
+      "description": "Suggests 8 to 12 new LinkedIn post ideas and keeps a ledger so published, rejected and in-progress ideas don't come back.",
+      "version": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LinkedIn Idea Ledger</title>
+<style>
+/* Layout: one column. The review card is the single focal point; in-progress and history sit quietly below it. */
+:root {
+  --paper: #F2F2F2;
+  --mist: #A6A6A6;
+  --stone: #737373;
+  --graphite: #404040;
+  --ink: #0D0D0D;
+  --blue: #A7CBD9;
+  --ice: #DCEEF2;
+
+  --bg: var(--paper);
+  --surface: #FFFFFF;
+  --tint: var(--ice);
+  --text: var(--ink);
+  --muted: var(--graphite);
+  --border: var(--mist);
+  --hairline: #D9D9D9;
+  --accent: var(--blue);
+  --on-accent: var(--ink);
+  --link-line: var(--blue);
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --radius: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--ink); --surface: #1A1A1A; --tint: #262B2D; --text: var(--paper); --muted: var(--mist);
+    --border: var(--graphite); --hairline: #2A2A2A; --link-line: var(--blue);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: var(--ink); --surface: #1A1A1A; --tint: #262B2D; --text: var(--paper); --muted: var(--mist);
+  --border: var(--graphite); --hairline: #2A2A2A; --link-line: var(--blue);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--font); font-size: 17px; line-height: 1.55; font-weight: 400;
+}
+.wrap {
+  max-width: 760px; margin: 0 auto;
+  padding: max(32px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 96px max(16px, env(safe-area-inset-left));
+  display: grid; gap: 48px;
+}
+h1, h2, h3 { margin: 0; font-weight: 500; text-wrap: balance; }
+p { margin: 0; }
+button { font-family: inherit; }
+button:focus-visible, textarea:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.sr { position: absolute; left: -9999px; }
+
+/* Header */
+header { display: grid; gap: 24px; }
+h1 { font-size: 40px; font-weight: 300; letter-spacing: -0.01em; line-height: 1.15; }
+.lede { font-size: 19px; color: var(--muted); max-width: 60ch; }
+
+/* Review */
+.review { display: grid; gap: 16px; }
+.steps { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; padding: 0; list-style: none; font-size: 15px; color: var(--muted); counter-reset: step; }
+.steps li { counter-increment: step; }
+.steps button {
+  background: none; border: 0; padding: 4px 0; color: inherit; font-size: inherit; cursor: pointer;
+  border-bottom: 2px solid transparent; font-variant-numeric: tabular-nums;
+}
+.steps button::before { content: counter(step) ". "; }
+.steps button[aria-current="step"] { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+.steps button:disabled { cursor: default; opacity: 0.55; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius);
+  padding: 32px; display: grid; gap: 20px;
+}
+.where { font-size: 15px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.hook { font-size: 27px; font-weight: 400; line-height: 1.3; text-wrap: pretty; }
+.title-small { font-size: 15px; color: var(--muted); }
+.angle { max-width: 62ch; }
+.why { color: var(--muted); max-width: 62ch; font-size: 16px; }
+.why b, .flag b { font-weight: 600; color: var(--text); }
+.flag { background: var(--tint); border-radius: var(--radius); padding: 12px 16px; font-size: 16px; }
+code { font-family: ui-monospace, Menlo, monospace; font-size: 0.85em; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-top: 4px; }
+.btn {
+  font-size: 16px; font-weight: 600; padding: 12px 22px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer;
+}
+.btn:hover { border-color: var(--text); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { border-color: var(--text); }
+.btn.quiet { border-color: transparent; color: var(--muted); padding-inline: 8px; text-decoration: underline; text-decoration-color: var(--link-line); text-underline-offset: 4px; }
+.btn.quiet:hover { color: var(--text); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.keys { font-size: 13px; color: var(--muted); }
+.keys kbd { font-family: inherit; font-weight: 600; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; }
+
+.killbox { display: grid; gap: 12px; border-top: 1px solid var(--hairline); padding-top: 20px; }
+.killbox label { font-weight: 500; }
+.killbox .hint { font-size: 15px; color: var(--muted); }
+textarea {
+  width: 100%; min-height: 76px; resize: vertical; padding: 12px 14px; font: inherit; font-size: 16px;
+  color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+}
+
+.status { min-height: 1.6em; font-size: 15px; color: var(--muted); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.status.err { color: var(--text); font-weight: 600; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--text); cursor: pointer; text-decoration: underline; text-decoration-color: var(--link-line); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+.done { text-align: left; display: grid; gap: 8px; }
+.done .hook { font-size: 24px; }
+
+/* Lower sections */
+section.quiet { display: grid; gap: 16px; }
+h2 { font-size: 22px; font-weight: 600; }
+.sectnote { color: var(--muted); font-size: 16px; max-width: 60ch; }
+.rows { border-top: 1px solid var(--hairline); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 24px; padding: 18px 0; border-bottom: 1px solid var(--hairline); align-items: start; }
+.row .t { font-weight: 600; }
+.row .h { color: var(--muted); font-size: 16px; }
+.row .n { font-size: 15px; margin-top: 6px; }
+.row .acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.row .btn { padding: 8px 14px; font-size: 15px; }
+.row .killbox { grid-column: 1 / -1; }
+
+details { border-top: 1px solid var(--hairline); }
+details:last-of-type { border-bottom: 1px solid var(--hairline); }
+summary { cursor: pointer; padding: 16px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 16px; font-variant-numeric: tabular-nums; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "Show"; font-weight: 400; color: var(--muted); font-size: 15px; }
+details[open] summary::after { content: "Hide"; }
+details ul { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
+details li { display: grid; gap: 2px; }
+details li span { font-size: 15px; color: var(--muted); overflow-wrap: anywhere; }
+
+footer { font-size: 15px; color: var(--muted); display: grid; gap: 4px; }
+
+@media (max-width: 560px) {
+  h1 { font-size: 32px; }
+  .card { padding: 22px 18px; }
+  .hook { font-size: 23px; }
+  .row { grid-template-columns: minmax(0, 1fr); }
+  .row .acts { justify-content: flex-start; }
+  .keys { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card { transition: opacity 160ms ease; }
+  .card.fade { opacity: 0.35; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>LinkedIn ideas</h1>
+    <p class="lede" id="lede">Loading your ideas…</p>
+  </header>
+
+  <section class="review" aria-labelledby="review-h">
+    <h2 id="review-h" class="sr">Decide</h2>
+    <ol class="steps" id="steps" aria-label="Order to decide in"></ol>
+    <div id="card"></div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="quiet" aria-labelledby="prog-h" id="progress-sec" hidden>
+    <h2 id="prog-h">Being written</h2>
+    <p class="sectnote">Ideas you said yes to. Nothing to decide here until a post goes live or you drop it.</p>
+    <div class="rows" id="progress"></div>
+  </section>
+
+  <section class="quiet" aria-labelledby="hist-h" id="history-sec" hidden>
+    <h2 id="hist-h">Done</h2>
+    <div id="history"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+(function () {
+  const SOURCE_ORDER = ["new topic", "new take", "archive", "trend", "direct"];
+  let ideas = [];
+  let db = null;
+  let canWrite = true;
+  let busy = false;
+  let step = null;           // current step key
+  const skipped = new Set(); // "decide later" this visit
+  let killing = null;        // slug with kill / reason box open
+  let undo = null;           // {slug, prev, msg}
+
+  const $ = (id) => document.getElementById(id);
+  function el(tag, props, ...kids) {
+    const n = document.createElement(tag);
+    if (props) for (const [k, v] of Object.entries(props)) {
+      if (v == null || v === false) continue;
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of kids) if (c != null && c !== false) n.append(c);
+    return n;
+  }
+  function withCode(text) {
+    const f = document.createDocumentFragment();
+    String(text || "").split(/(`[^`]+`)/).forEach((p) => f.append(p.startsWith("`") && p.endsWith("`") ? el("code", { text: p.slice(1, -1) }) : p));
+    return f;
+  }
+  function today() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function niceDate(iso) {
+    const t = Date.parse(iso + "T12:00:00");
+    if (isNaN(t)) return iso || "";
+    return new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  }
+  function srcRank(s) {
+    const low = String(s || "").toLowerCase();
+    const i = SOURCE_ORDER.findIndex((k) => low.startsWith(k));
+    return i < 0 ? 9 : i;
+  }
+  function noKillReason(i) {
+    const n = i.note.trim().toLowerCase();
+    return i.state === "killed" && (n === "" || n === "rejected." || n === "rejected");
+  }
+
+  /* The decision queue, in the order to work through it */
+  function groups() {
+    const raised = ideas.filter((i) => i.state === "raised");
+    const latest = raised.reduce((m, i) => (i.date > m ? i.date : m), "");
+    const order = (a, b) => srcRank(a.source) - srcRank(b.source) || a.slug.localeCompare(b.slug);
+    const later = (list) => list.filter((i) => !skipped.has(i.slug)).concat(list.filter((i) => skipped.has(i.slug)));
+    return [
+      { key: "new", label: "Newest ideas", sub: latest ? "From the " + niceDate(latest) + " menu" : "", kind: "idea",
+        items: later(raised.filter((i) => i.date === latest).sort(order)) },
+      { key: "reasons", label: "Kill reasons", sub: "Killed with no reason given", kind: "reason",
+        items: later(ideas.filter(noKillReason).sort(order)) },
+      { key: "older", label: "Older ideas", sub: "Raised before, never decided", kind: "idea",
+        items: later(raised.filter((i) => i.date !== latest).sort((a, b) => b.date.localeCompare(a.date) || order(a, b))) }
+    ];
+  }
+
+  function renderLede(gs) {
+    const total = gs.reduce((n, g) => n + g.items.length, 0);
+    const first = gs.find((g) => g.items.length);
+    $("lede").textContent = !total
+      ? "Nothing waiting on you. New ideas arrive the next time the idea generator runs."
+      : total + (total === 1 ? " idea needs" : " ideas need") + " a yes or no. Start with " +
+        (first.key === "new" ? "the " + first.items.length + " newest." : first.key === "reasons" ? "the kill reasons." : "the older ideas.");
+  }
+
+  function renderSteps(gs) {
+    if (!step || !gs.find((g) => g.key === step && g.items.length)) {
+      const first = gs.find((g) => g.items.length);
+      step = first ? first.key : null;
+    }
+    const ol = $("steps");
+    ol.replaceChildren();
+    for (const g of gs) {
+      ol.append(el("li", null, el("button", {
+        type: "button", "aria-current": g.key === step ? "step" : null, disabled: !g.items.length,
+        text: g.label + " (" + g.items.length + ")",
+        onclick: () => { step = g.key; killing = null; render(); }
+      })));
+    }
+  }
+
+  function renderCard(gs) {
+    const box = $("card");
+    box.replaceChildren();
+    const g = gs.find((x) => x.key === step);
+    if (!g) {
+      box.append(el("div", { class: "card done" },
+        el("p", { class: "hook", text: "All decided." }),
+        el("p", { class: "why", text: "Run the idea generator for a fresh menu. Your decisions reach the ledger file then." })));
+      return;
+    }
+    const i = g.items[0];
+    const pos = g.items.length;
+    const card = el("div", { class: "card", id: "current" });
+    card.append(el("div", { class: "where" },
+      el("span", { text: g.sub }),
+      el("span", { text: pos === 1 ? "Last one" : pos + " left" })));
+
+    card.append(el("p", { class: "hook" }, i.hook ? "“" + i.hook + "”" : i.idea));
+    if (i.hook) card.append(el("p", { class: "title-small", text: i.idea }));
+    if (i.angle) card.append(el("p", { class: "angle" }, withCode(i.angle)));
+    if (i.why) card.append(el("p", { class: "why" }, el("b", { text: "Why: " }), withCode(i.why)));
+
+    if (g.kind === "idea") {
+      if (i.note && !/^raised again/i.test(i.note)) card.append(el("p", { class: "flag" }, el("b", { text: "Heads up: " }), withCode(i.note)));
+      if (killing === i.slug) card.append(killBox(i, "kill"));
+      else {
+        card.append(el("div", { class: "actions" },
+          el("button", { class: "btn primary", type: "button", text: "Yes, explore it", disabled: busy || !canWrite, onclick: () => decide(i, "explore") }),
+          el("button", { class: "btn", type: "button", text: "No, kill it", disabled: busy || !canWrite, onclick: () => openKill(i.slug) }),
+          el("button", { class: "btn quiet", type: "button", text: "Decide later", onclick: () => later(i) }),
+          el("span", { class: "keys" }, el("kbd", { text: "Y" }), " ", el("kbd", { text: "N" }), " ", el("kbd", { text: "L" }))));
+      }
+    } else {
+      card.append(el("p", { class: "flag" }, el("b", { text: "Killed " + niceDate(i.date) + " with no reason. " }), "A few words stop reworded versions of it coming back in future menus."));
+      card.append(killBox(i, "reason"));
+    }
+    box.append(card);
+  }
+
+  function killBox(i, kind) {
+    const id = "why-" + i.slug;
+    const ta = el("textarea", { id, placeholder: kind === "reason" ? "e.g. too close to what everyone else posts" : "e.g. too close to a post that's already live" });
+    const save = el("button", { class: "btn primary", type: "button", text: kind === "reason" ? "Save reason" : "Kill it", disabled: busy || !canWrite,
+      onclick: () => decide(i, kind, ta.value.trim()) });
+    const second = kind === "reason"
+      ? el("button", { class: "btn quiet", type: "button", text: "Skip", onclick: () => later(i) })
+      : el("button", { class: "btn quiet", type: "button", text: "Cancel", onclick: () => { killing = null; render(); } });
+    ta.addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) save.click(); if (e.key === "Escape" && kind !== "reason") { killing = null; render(); } });
+    return el("div", { class: "killbox" },
+      el("label", { for: id, text: kind === "reason" ? "Why was it killed?" : "Why kill it?" }),
+      el("p", { class: "hint", text: kind === "reason" ? "Optional, but it's what keeps similar ideas out." : "Optional. Leave it blank and it's saved as “No reason given”." }),
+      ta, el("div", { class: "actions" }, save, second));
+  }
+
+  function openKill(slug) {
+    killing = slug; render();
+    const t = $("why-" + slug); if (t) t.focus();
+  }
+  function later(i) { skipped.add(i.slug); killing = null; undo = null; status(""); render(); }
+
+  function patchFor(i, kind, text) {
+    const d = today();
+    if (kind === "explore") return { state: "exploring", date: d, progress: i.draftPath ? "drafted: " + i.draftPath : "no draft" };
+    if (kind === "kill") return { state: "killed", date: d, progress: "", note: text || "No reason given" };
+    if (kind === "reason") return { note: text || "No reason given" };
+    if (kind === "live") return { state: "published", date: d, progress: "", note: "Went live on LinkedIn." };
+  }
+  const MSG = { explore: "Moved to Being written.", kill: "Killed.", reason: "Reason saved.", live: "Marked as live." };
+
+  async function decide(i, kind, text) {
+    const patch = patchFor(i, kind, text);
+    const prev = { state: i.state, date: i.date, progress: i.progress, note: i.note, synced: i.synced };
+    const ok = await write(i.slug, Object.assign(patch, { synced: false, changedAt: new Date().toISOString() }));
+    if (ok) { killing = null; undo = { slug: i.slug, prev, msg: MSG[kind] + " “" + i.idea + "”" }; showUndo(); }
+  }
+
+  async function write(slug, patch) {
+    if (!db || busy) return false;
+    busy = true; render();
+    const c = $("current"); if (c) c.classList.add("fade");
+    try {
+      await db.collection("ideas").doc(slug).update(patch);
+      return true;
+    } catch (e) {
+      if (e && e.code === "invalid_argument") { canWrite = false; status("You can view these ideas but not change them.", true); }
+      else status("That didn't save. Check your connection and try again.", true);
+      return false;
+    } finally { busy = false; render(); }
+  }
+
+  function showUndo() {
+    const s = $("status");
+    s.className = "status";
+    s.replaceChildren(el("span", { text: undo.msg }), el("button", { class: "linkbtn", type: "button", text: "Undo", onclick: async () => {
+      const u = undo; undo = null;
+      if (await write(u.slug, Object.assign({}, u.prev, { changedAt: new Date().toISOString() }))) status("Undone.");
+    } }));
+  }
+  function status(msg, err) { const s = $("status"); s.className = "status" + (err ? " err" : ""); s.replaceChildren(msg); }
+
+  function renderProgress() {
+    const list = ideas.filter((i) => i.state === "exploring").sort((a, b) => a.idea.localeCompare(b.idea));
+    $("progress-sec").hidden = !list.length;
+    const box = $("progress");
+    box.replaceChildren();
+    for (const i of list) {
+      const row = el("div", { class: "row" },
+        el("div", null,
+          el("p", { class: "t", text: i.idea }),
+          i.hook ? el("p", { class: "h", text: "“" + i.hook + "”" }) : null,
+          i.progress ? el("p", { class: "n" }, withCode(i.progress)) : null),
+        el("div", { class: "acts" },
+          el("button", { class: "btn", type: "button", text: "It's live", disabled: busy || !canWrite, onclick: () => decide(i, "live") }),
+          el("button", { class: "btn quiet", type: "button", text: "Drop it", disabled: busy || !canWrite, onclick: () => openKill(i.slug) })));
+      if (killing === i.slug) row.append(killBox(i, "kill"));
+      box.append(row);
+    }
+  }
+
+  function renderHistory() {
+    const pub = ideas.filter((i) => i.state === "published").sort((a, b) => a.idea.localeCompare(b.idea));
+    const killed = ideas.filter((i) => i.state === "killed").sort((a, b) => a.idea.localeCompare(b.idea));
+    $("history-sec").hidden = !pub.length && !killed.length;
+    const box = $("history");
+    const wasOpen = [...box.querySelectorAll("details")].map((d) => d.open);
+    box.replaceChildren();
+    const mk = (label, list, detail) => el("details", null,
+      el("summary", null, el("span", { text: label + " (" + list.length + ")" })),
+      el("ul", null, ...list.map((i) => el("li", null, el("strong", { text: i.idea, style: "font-weight:500" }), detail(i) ? el("span", { text: detail(i) }) : null))));
+    box.append(
+      mk("Live on LinkedIn", pub, () => ""),
+      mk("Killed", killed, (i) => (noKillReason(i) ? "No reason yet" : i.note)));
+    box.querySelectorAll("details").forEach((d, n) => (d.open = !!wasOpen[n]));
+  }
+
+  function renderFooter() {
+    const pending = ideas.filter((i) => !i.synced).length;
+    $("footer").replaceChildren(
+      el("p", { text: pending
+        ? pending + (pending === 1 ? " decision" : " decisions") + " made here will reach the ledger file the next time the idea generator runs."
+        : "Everything here matches the ledger file." }),
+      el("p", { text: "Decisions you make in chat with Claude show up here too." }));
+  }
+
+  function render() {
+    if (!ideas.length) return;
+    const gs = groups();
+    renderLede(gs); renderSteps(gs); renderCard(gs); renderProgress(); renderHistory(); renderFooter();
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = (e.target && e.target.tagName) || "";
+    if (tag === "TEXTAREA" || tag === "INPUT" || killing) return;
+    const g = groups().find((x) => x.key === step);
+    if (!g || g.kind !== "idea" || !g.items.length || busy) return;
+    const i = g.items[0];
+    const k = e.key.toLowerCase();
+    if (k === "y" && canWrite) { e.preventDefault(); decide(i, "explore"); }
+    else if (k === "n" && canWrite) { e.preventDefault(); openKill(i.slug); }
+    else if (k === "l") { e.preventDefault(); later(i); }
+  });
+
+  function normalise(d) {
+    const x = d.data() || {};
+    const s = (v) => (v == null ? "" : String(v));
+    return { slug: d.id, idea: s(x.idea) || d.id, source: s(x.source), state: s(x.state) || "raised", date: s(x.date),
+      progress: s(x.progress), note: s(x.note), draftPath: s(x.draftPath), hook: s(x.hook), angle: s(x.angle), why: s(x.why),
+      synced: x.synced !== false };
+  }
+
+  async function start() {
+    const claude = window.claude;
+    db = claude ? await claude.use("db") : null;
+    if (!db) { $("lede").textContent = "Your ideas can't load in this view. Open the page on claude.ai while signed in."; return; }
+    try {
+      const user = await claude.use("user");
+      if (user && typeof user.can === "function" && (await user.can("data.write")) === false) canWrite = false;
+    } catch (e) { /* a refused write will tell us */ }
+    const timer = setTimeout(() => { if (!ideas.length) $("lede").textContent = "Still connecting. Your ideas will appear as soon as the connection returns."; }, 10000);
+    db.collection("ideas").onSnapshot((snap) => {
+      clearTimeout(timer);
+      ideas = snap.docs.map(normalise);
+      if (!ideas.length) { $("lede").textContent = "No ideas yet. Run the idea generator and the menu lands here."; return; }
+      render();
+    }, (e) => {
+      clearTimeout(timer);
+      if (!(e && e.code === "revoked")) status("The page stopped updating. Reload to reconnect.", true);
+    });
+  }
+  start();
+})();
+</script>
+</body>
+</html>

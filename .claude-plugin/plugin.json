@@ -1,0 +1,10 @@
+{
+  "name": "idea-generator",
+  "description": "Suggests 8 to 12 new LinkedIn post ideas and keeps a ledger of every idea, so published, rejected and in-progress ideas don't come back. Includes an optional review dashboard.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Beth Hewitt"
+  },
+  "license": "MIT",
+  "keywords": ["linkedin", "content", "ideas", "social-media", "marketing"]
+}
