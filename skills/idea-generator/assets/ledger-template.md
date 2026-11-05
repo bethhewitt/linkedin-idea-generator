@@ -13,7 +13,7 @@ Where everything lives, so the idea generator doesn't have to ask each run. Leav
 - **Saved-for-later ideas:**
 - **Published-posts record (export or list):**
 - **Menus saved to:**
-- **Dashboard:** (URL and UUID slug, if one has been set up)
+- **Dashboard:** (URL and UUID slug once set up; or "not now (date)" or "declined" if the offer was turned down)
 - **Brand (for the dashboard):** (where it came from, main colours, font, logo file; or "neutral")
 
 ## How it works
